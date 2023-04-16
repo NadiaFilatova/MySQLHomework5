@@ -1,18 +1,20 @@
-DROP database if exists ShopDB;
+DROP
+database if exists ShopDB;
 
-CREATE DATABASE ShopDB;
+CREATE
+DATABASE ShopDB;
 
-USE ShopDB;
-
-
+USE
+ShopDB;
 
 CREATE TABLE Employees
 (
-    EmployeeID      int           NOT NULL,
-    FName           nvarchar(15)  NOT NULL,
-    LName           nvarchar(15)  NOT NULL,
-    MName           nvarchar(15)  NOT NULL,
-    Salary          double(10, 2) NOT NULL,
+    EmployeeID int NOT NULL,
+    FName      nvarchar(15) NOT NULL,
+    LName      nvarchar(15) NOT NULL,
+    MName      nvarchar(15) NOT NULL,
+    Salary     double(10, 2
+) NOT NULL,
     PriorSalary     double(10, 2) NOT NULL,
     HireDate        date          NOT NULL,
     TerminationDate date          NULL,
@@ -33,24 +35,24 @@ ALTER TABLE Employees
 
 CREATE TABLE Customers
 (
-    CustomerNo   int          NOT NULL auto_increment,
+    CustomerNo   int       NOT NULL auto_increment,
     FName        nvarchar(15) NOT NULL,
     LName        nvarchar(15) NOT NULL,
     MName        nvarchar(15) NULL,
     Address1     nvarchar(50) NOT NULL,
     Address2     nvarchar(50) NULL,
-    City         nchar(10)    NOT NULL,
-    Phone        char(12)     NOT NULL,
-    DateInSystem date         NULL,
+    City         nchar(10) NOT NULL,
+    Phone        char(12)  NOT NULL,
+    DateInSystem date NULL,
     primary key (CustomerNo)
 );
 
 CREATE TABLE Orders
 (
     OrderID    int  NOT NULL auto_increment,
-    CustomerNo int  NULL,
+    CustomerNo int NULL,
     OrderDate  date NOT NULL,
-    EmployeeID int  NULL,
+    EmployeeID int NULL,
     primary key (OrderID)
 );
 
@@ -73,20 +75,22 @@ ALTER TABLE Orders
 -- -
 CREATE TABLE Products
 (
-    ProdID      int            NOT NULL auto_increment,
-    Description nchar(50)      NOT NULL,
-    UnitPrice   double(10, 2)  NULL,
+    ProdID      int       NOT NULL auto_increment,
+    Description nchar(50) NOT NULL,
+    UnitPrice   double(10, 2
+) NULL,
     Weight      numeric(18, 0) NULL,
     primary key (ProdID)
 );
 
 CREATE TABLE OrderDetails
 (
-    OrderID    int           NOT NULL,
-    LineItem   int           NOT NULL,
-    ProdID     int           NULL,
-    Qty        int           NOT NULL,
-    UnitPrice  double(10, 2) NOT NULL,
+    OrderID   int NOT NULL,
+    LineItem  int NOT NULL,
+    ProdID    int NULL,
+    Qty       int NOT NULL,
+    UnitPrice double(10, 2
+) NOT NULL,
     TotalPrice int
 );
 
@@ -110,7 +114,8 @@ ALTER TABLE OrderDetails
             ON UPDATE CASCADE
             ON DELETE CASCADE;
 
-INSERT Employees
+INSERT
+Employees
 (EmployeeID, FName, MName, LName, Salary, PriorSalary, HireDate, TerminationDate, ManagerEmpID)
 VALUES (1, 'Хтось', 'Хтось', 'Хтосьович', 2000, 0, '2009-11-20', NULL,
         NULL), -- додала одну людину, бо база не працювала.
@@ -119,7 +124,8 @@ VALUES (1, 'Хтось', 'Хтось', 'Хтосьович', 2000, 0, '2009-11-2
        (4, 'Светлана', 'Олеговна', 'Лялечкина', 800, 0, '2009-11-20', NULL, 2);
 
 
-INSERT Customers
+INSERT
+Customers
     (LName, FName, MName, Address1, Address2, City, Phone, DateInSystem)
 VALUES ('Круковский', 'Анатолий', 'Петрович', 'Лужная 15', NULL, 'Харьков', '(092)3212211', '2009-11-20'),
        ('Дурнев', 'Виктор', 'Викторович', 'Зелинская 10', NULL, 'Киев', '(067)4242132', '2009-11-20'),
@@ -128,7 +134,8 @@ VALUES ('Круковский', 'Анатолий', 'Петрович', 'Луж�
        ('Выжлецов', 'Олег', 'Евстафьевич', 'Киевская 3', 'Одесская 8', 'Чернигов', '(044)2134212', '2009-11-20');
 
 
-INSERT Products
+INSERT
+Products
     (Description, UnitPrice, Weight)
 VALUES ('LV231 Джинсы', 45, 0.9),
        ('GC111 Футболка', 20, 0.3),
@@ -138,13 +145,15 @@ VALUES ('LV231 Джинсы', 45, 0.9),
        ('GC11 Шапка', 32, 0.35);
 
 
-INSERT Orders
+INSERT
+Orders
     (CustomerNo, OrderDate, EmployeeID)
 VALUES (1, '2009-11-20', 2),
        (3, '2009-11-20', 4),
        (5, '2009-11-20', 4);
 
-INSERT OrderDetails
+INSERT
+OrderDetails
     (OrderID, LineItem, ProdID, Qty, UnitPrice, TotalPrice)
 VALUES (1, 1, 1, 5, 45, 45 * 5),
        (1, 2, 4, 5, 29, 29 * 5),
@@ -165,8 +174,6 @@ FROM Orders;
 SELECT *
 FROM Customers;
 -- Используя JOIN’s и ShopDB получить имена покупателей и имена сотрудников у которых TotalPrice товара больше 1000
-/* якщо мова іде про TotalPrice кожного продукту в замовленні  -  збірка буде пустою, бо жодна позиція в замовленнях не коштує  більше 1000  */
-
 /*  якщо мова іде про загальну суму замовлення, отримаємо 1 результат */
 SELECT Customers.LName AS Customer_LName,
        Customers.FName AS Customer_FName,
@@ -181,4 +188,31 @@ FROM Orders
          INNER JOIN OrderDetails
                     ON Orders.OrderID = OrderDetails.OrderID
 GROUP BY Customer_LName, Customer_FName, Employee_LName, Employee_FName
+HAVING SUM(TotalPrice) > 1000;
+
+-- Используя вложенные запросы и ShopDB
+-- получить имена покупателей и имена сотрудников у которых TotalPrice товара больше 1000
+SELECT SUM(TotalPrice),
+       (SELECT LName
+        FROM Customers
+        WHERE CustomerNo = (SELECT CustomerNo
+                            FROM Orders
+                            WHERE Orders.OrderId = OrderDetails.OrderId)) AS CustomerLName,
+       (SELECT FName
+        FROM Customers
+        WHERE CustomerNo = (SELECT CustomerNo
+                            FROM Orders
+                            WHERE Orders.OrderId = OrderDetails.OrderId)) AS CustomerFName,
+       (SELECT LName
+        FROM Employees
+        WHERE EmployeeID = (SELECT EmployeeID
+                            FROM Orders
+                            WHERE Orders.OrderId = OrderDetails.OrderId)) AS EmployeesLName,
+       (SELECT FName
+        FROM Employees
+        WHERE EmployeeID = (SELECT EmployeeID
+                            FROM Orders
+                            WHERE Orders.OrderId = OrderDetails.OrderId)) AS EmployeesFName
+FROM OrderDetails
+GROUP BY CustomerLName, CustomerFName, EmployeesLName, EmployeesFName
 HAVING SUM(TotalPrice) > 1000;

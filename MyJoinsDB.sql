@@ -1,16 +1,30 @@
-DROP DATABASE IF EXISTS MyJoinsDB;
-CREATE DATABASE IF NOT EXISTS MyJoinsDB;
-USE MyJoinsDB;
+DROP
+DATABASE IF EXISTS MyJoinsDB;
+CREATE
+DATABASE IF NOT EXISTS MyJoinsDB;
+USE
+MyJoinsDB;
 
 CREATE TABLE IF NOT EXISTS staff
 (
-    id    INT AUTO_INCREMENT PRIMARY KEY,
-    name_staff  VARCHAR(20) NOT NULL,
-    phone VARCHAR(15) NOT NULL
+    id
+    INT
+    AUTO_INCREMENT
+    PRIMARY
+    KEY,
+    name_staff
+    VARCHAR
+(
+    20
+) NOT NULL,
+    phone VARCHAR
+(
+    15
+) NOT NULL
     );
 
 INSERT INTO staff
-(name_staff, phone)
+    (name_staff, phone)
 VALUES ('Андрiй', '+380974222231'),
        ('Коля', '+380974222272'),
        ('Саша', '+380964552241'),
@@ -19,11 +33,24 @@ VALUES ('Андрiй', '+380974222231'),
 
 CREATE TABLE IF NOT EXISTS serviceInfo
 (
-    id       INT PRIMARY KEY,
-    position_staff VARCHAR(20) NOT NULL,
-    salary   INT         NOT NULL,
-    staff_id INT         NOT NULL,
-    FOREIGN KEY (staff_id) REFERENCES staff (id)
+    id
+    INT
+    PRIMARY
+    KEY,
+    position_staff
+    VARCHAR
+(
+    20
+) NOT NULL,
+    salary INT NOT NULL,
+    staff_id INT NOT NULL,
+    FOREIGN KEY
+(
+    staff_id
+) REFERENCES staff
+(
+    id
+)
 
     );
 
@@ -36,12 +63,28 @@ VALUES (1, 'Главный директор', 2000, 1),
 
 CREATE TABLE IF NOT EXISTS personalInfo
 (
-    id            INT PRIMARY KEY,
-    maritalStatus VARCHAR(100) NOT NULL,
-    birth_day     DATE         NOT NULL,
-    address       VARCHAR(100) NOT NULL,
-    staff_id      INT          NOT NULL,
-    FOREIGN KEY (staff_id) REFERENCES staff (id)
+    id
+    INT
+    PRIMARY
+    KEY,
+    maritalStatus
+    VARCHAR
+(
+    100
+) NOT NULL,
+    birth_day DATE NOT NULL,
+    address VARCHAR
+(
+    100
+) NOT NULL,
+    staff_id INT NOT NULL,
+    FOREIGN KEY
+(
+    staff_id
+) REFERENCES staff
+(
+    id
+)
     );
 
 INSERT INTO personalInfo(id, maritalStatus, birth_day, address, staff_id)
@@ -60,24 +103,47 @@ SELECT *
 FROM personalInfo;
 
 /* Получите контактные данные сотрудников (номера телефонов, место жительства)  5 чел*/
+-- при помощи JOIN’s
 SELECT staff.name_staff, staff.phone, personalInfo.address
 FROM staff
          RIGHT JOIN personalInfo
                     ON staff.id = personalInfo.staff_id;
 
+-- при помощи вложенных запросов
+SELECT name_staff, phone, (SELECT address FROM personalInfo WHERE staff.id = personalInfo.id) AS adress
+FROM staff;
+
 /* Получите информацию о дате рождения всех холостых сотрудников и их номера 3 чел */
+-- при помощи JOIN’s
 SELECT staff.name_staff, personalInfo.maritalStatus, personalInfo.birth_day, staff.phone
 FROM staff
          JOIN personalInfo
               ON staff.id = personalInfo.staff_id
 WHERE personalInfo.maritalStatus IN ('розведена', 'неодружений', 'неодружена');
 
+-- при помощи вложенных запросов
+SELECT maritalStatus,
+       birth_day,
+       (SELECT phone FROM staff WHERE staff.id = personalInfo.id)      AS phone,
+       (SELECT name_staff FROM staff WHERE staff.id = personalInfo.id) AS name
+FROM personalInfo
+WHERE personalInfo.maritalStatus IN ('розведена', 'неодружений', 'неодружена');
+
 /* Получите информацию обо всех менеджерах компании: дату рождения и номер телефона 3 чел */
+-- при помощи JOIN’s
 SELECT staff.name_staff, position_staff, personalInfo.birth_day, staff.phone
 FROM staff
          JOIN personalInfo
               ON staff.id = personalInfo.staff_id
          JOIN serviceInfo
               ON staff.id = serviceInfo.staff_id
-WHERE serviceInfo.position_staff= 'Менеджер';
+WHERE serviceInfo.position_staff = 'Менеджер';
+
+-- при помощи вложенных запросов
+SELECT position_staff                                                              AS position_staff,
+       (SELECT name_staff FROM staff WHERE staff.id = serviceInfo.id)              AS name,
+       (SELECT phone FROM staff WHERE staff.id = serviceInfo.id)                   as phone,
+       (SELECT birth_day FROM personalInfo WHERE personalInfo.id = serviceInfo.id) as birthday
+FROM serviceInfo
+WHERE serviceInfo.position_staff = 'Менеджер';
 
